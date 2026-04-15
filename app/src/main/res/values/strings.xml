@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">FASTADB OTG</string>
+
+    <string name="action_refresh">刷新</string>
+    <string name="action_expand_controls">展开控制区</string>
+    <string name="action_collapse_controls">收起控制区</string>
+
+    <string name="mode_disconnected">未连接</string>
+    <string name="mode_permission_required">等待授权</string>
+    <string name="mode_unsupported">不支持</string>
+    <string name="mode_adb">ADB</string>
+    <string name="mode_fastboot">Fastboot</string>
+
+    <string name="status_waiting_for_otg">等待 OTG 设备连接</string>
+    <string name="status_no_supported_interface">检测到 USB 设备，但没有发现 ADB/Fastboot 接口</string>
+    <string name="status_requesting_usb_permission">检测到 %1$s 设备，正在请求 USB 授权</string>
+    <string name="status_terminal_ready">设备已连接，终端可直接发送命令</string>
+    <string name="status_device_disconnected">设备已断开</string>
+    <string name="status_connecting_device">正在连接 %1$s 设备</string>
+    <string name="status_device_synced">设备已连接，自动信息已同步</string>
+    <string name="status_connection_failed">连接失败</string>
+
+    <string name="label_no_device">未连接设备</string>
+    <string name="label_supported_interfaces">支持 ADB USB 与 Fastboot USB 接口</string>
+    <string name="label_usb_device">%1$s USB 设备</string>
+
+    <string name="fact_connection_mode">连接模式</string>
+    <string name="fact_product">产品</string>
+    <string name="fact_serial_number">序列号</string>
+    <string name="fact_bootloader">Bootloader</string>
+    <string name="fact_secure">安全锁</string>
+    <string name="fact_current_slot">当前槽位</string>
+    <string name="fact_userspace_fastboot">Userspace Fastboot</string>
+    <string name="fact_manufacturer">厂商</string>
+    <string name="fact_model">型号</string>
+    <string name="fact_device_codename">设备代号</string>
+    <string name="fact_build_version">系统版本</string>
+    <string name="fact_boot_mode">启动模式</string>
+
+    <string name="title_fastboot_device">Fastboot 设备</string>
+    <string name="title_adb_device">ADB 设备</string>
+</resources>

@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">FASTADB OTG</string>
+
+    <string name="action_refresh">Refresh</string>
+    <string name="action_expand_controls">Expand Controls</string>
+    <string name="action_collapse_controls">Collapse Controls</string>
+
+    <string name="mode_disconnected">Disconnected</string>
+    <string name="mode_permission_required">Permission</string>
+    <string name="mode_unsupported">Unsupported</string>
+    <string name="mode_adb">ADB</string>
+    <string name="mode_fastboot">Fastboot</string>
+
+    <string name="status_waiting_for_otg">Waiting for OTG device</string>
+    <string name="status_no_supported_interface">USB device detected, but no ADB/Fastboot interface was found</string>
+    <string name="status_requesting_usb_permission">Detected %1$s device, requesting USB permission</string>
+    <string name="status_terminal_ready">Device connected. Terminal is ready.</string>
+    <string name="status_device_disconnected">Device disconnected</string>
+    <string name="status_connecting_device">Connecting to %1$s device</string>
+    <string name="status_device_synced">Device connected. Details loaded.</string>
+    <string name="status_connection_failed">Connection failed</string>
+
+    <string name="label_no_device">No device connected</string>
+    <string name="label_supported_interfaces">Supports ADB USB and Fastboot USB interfaces</string>
+    <string name="label_usb_device">%1$s USB device</string>
+
+    <string name="fact_connection_mode">Connection mode</string>
+    <string name="fact_product">Product</string>
+    <string name="fact_serial_number">Serial</string>
+    <string name="fact_bootloader">Bootloader</string>
+    <string name="fact_secure">Secure</string>
+    <string name="fact_current_slot">Current slot</string>
+    <string name="fact_userspace_fastboot">Userspace Fastboot</string>
+    <string name="fact_manufacturer">Manufacturer</string>
+    <string name="fact_model">Model</string>
+    <string name="fact_device_codename">Codename</string>
+    <string name="fact_build_version">Build</string>
+    <string name="fact_boot_mode">Boot mode</string>
+
+    <string name="title_fastboot_device">Fastboot device</string>
+    <string name="title_adb_device">ADB device</string>
+</resources>

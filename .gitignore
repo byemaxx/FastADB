@@ -1,0 +1,32 @@
+*.iml
+.DS_Store
+
+# Android / Gradle
+.gradle/
+.gradle-home/
+.android/
+.kotlin/
+local.properties
+build/
+app/build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE
+.idea/
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+
+# Signing files
+*.jks
+*.keystore
+keystore.properties
+
+# OS / logs
+*.log
+Thumbs.db
