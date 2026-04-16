@@ -1,10 +1,33 @@
 name: Build And Publish Release APK
+run-name: Release ${{ inputs.tag_name }}
 
 on:
   workflow_dispatch:
-  release:
-    types:
-      - published
+    inputs:
+      tag_name:
+        description: Release tag to create or update, for example v1.0.0
+        required: true
+        type: string
+      release_name:
+        description: Optional release title, defaults to the tag name
+        required: false
+        default: ""
+        type: string
+      release_notes:
+        description: Optional release notes, generate notes automatically when empty
+        required: false
+        default: ""
+        type: string
+      draft:
+        description: Publish this release as a draft
+        required: true
+        default: false
+        type: boolean
+      prerelease:
+        description: Mark this release as a prerelease
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -32,38 +55,66 @@ jobs:
           java-version: "17"
           cache: gradle
 
+      - name: Validate signing secrets
+        shell: bash
+        run: |
+          missing=()
+          [ -n "$ANDROID_KEYSTORE_BASE64" ] || missing+=("ANDROID_KEYSTORE_BASE64")
+          [ -n "$ANDROID_KEYSTORE_PASSWORD" ] || missing+=("ANDROID_KEYSTORE_PASSWORD")
+          [ -n "$ANDROID_KEY_ALIAS" ] || missing+=("ANDROID_KEY_ALIAS")
+          [ -n "$ANDROID_KEY_PASSWORD" ] || missing+=("ANDROID_KEY_PASSWORD")
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "Missing required signing secrets: ${missing[*]}" >&2
+            exit 1
+          fi
+
       - name: Decode Android keystore
         id: keystore
-        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
         shell: bash
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.keystore"
           echo "path=$RUNNER_TEMP/release.keystore" >> "$GITHUB_OUTPUT"
 
-      - name: Build release APK
+      - name: Build signed release APK
         env:
           ANDROID_KEYSTORE_PATH: ${{ steps.keystore.outputs.path }}
         run: ./gradlew --no-daemon assembleRelease
 
-      - name: Prepare APK output
+      - name: Prepare signed APK output
         id: apk
         shell: bash
         run: |
-          if [ -f app/build/outputs/apk/release/app-release.apk ]; then
-            APK_PATH="app/build/outputs/apk/release/app-release.apk"
-          else
-            APK_PATH="app/build/outputs/apk/release/app-release-unsigned.apk"
+          APK_PATH="app/build/outputs/apk/release/app-release.apk"
+          if [ ! -f "$APK_PATH" ]; then
+            echo "Signed release APK not found at $APK_PATH" >&2
+            exit 1
           fi
-          echo "apk_path=$APK_PATH" >> "$GITHUB_OUTPUT"
+
+          SAFE_TAG="${{ inputs.tag_name }}"
+          SAFE_TAG="${SAFE_TAG//\//-}"
+          APK_NAME="FASTADB-${SAFE_TAG}.apk"
+          cp "$APK_PATH" "$RUNNER_TEMP/$APK_NAME"
+
+          echo "apk_path=$RUNNER_TEMP/$APK_NAME" >> "$GITHUB_OUTPUT"
+          echo "apk_name=$APK_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
+          name: signed-release-apk
           path: ${{ steps.apk.outputs.apk_path }}
 
       - name: Upload APK to GitHub Release
-        if: ${{ github.event_name == 'release' }}
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.tag_name }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ inputs.release_name || inputs.tag_name }}
+          body: ${{ inputs.release_notes }}
+          draft: ${{ inputs.draft }}
+          prerelease: ${{ inputs.prerelease }}
+          generate_release_notes: ${{ inputs.release_notes == '' }}
           files: ${{ steps.apk.outputs.apk_path }}
+          fail_on_unmatched_files: true
+          overwrite_files: true
