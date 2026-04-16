@@ -221,9 +221,11 @@ class FastAdbViewModel(
 
     fun sendQuickAction(action: QuickAction) {
         runWithSession {
+            appendLog(TerminalKind.Command, describeQuickActionCommand(action, it.mode))
             it.executeQuickAction(action) { kind, message ->
                 appendLog(kind, message)
             }
+            appendLog(TerminalKind.System, describeQuickActionSuccess(action))
         }
     }
 
@@ -427,6 +429,30 @@ class FastAdbViewModel(
     }
 
     private fun allocateLineId(): Long = nextLineId++
+}
+
+internal fun describeQuickActionCommand(action: QuickAction, mode: DeviceMode): String = when (action) {
+    QuickAction.RebootBootloader -> when (mode) {
+        DeviceMode.Adb -> "adb reboot bootloader"
+        DeviceMode.Fastboot -> "fastboot reboot-bootloader"
+        else -> "reboot bootloader"
+    }
+
+    QuickAction.SetGpuPreemptionPermissive ->
+        "fastboot oem set-gpu-preemption 0 androidboot.selinux=permissive"
+
+    QuickAction.FastbootContinue -> "fastboot continue"
+}
+
+internal fun describeQuickActionSuccess(action: QuickAction): String = when (action) {
+    QuickAction.RebootBootloader ->
+        "Reboot command sent. The device may disconnect and reconnect in bootloader mode."
+
+    QuickAction.SetGpuPreemptionPermissive ->
+        "The set-gpu-preemption command was accepted by the device."
+
+    QuickAction.FastbootContinue ->
+        "Fastboot continue command sent. The device may leave Fastboot mode."
 }
 
 private data class UsbCandidate(
