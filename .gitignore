@@ -26,6 +26,7 @@ captures/
 *.jks
 *.keystore
 keystore.properties
+release-secrets.env
 
 # OS / logs
 *.log

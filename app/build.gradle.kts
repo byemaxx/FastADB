@@ -1,14 +1,25 @@
-import java.io.File
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
 
-val releaseStoreFile = System.getenv("ANDROID_KEYSTORE_PATH")
-val releaseStorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
-val releaseKeyAlias = System.getenv("ANDROID_KEY_ALIAS")
-val releaseKeyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+val keystoreProperties = Properties().apply {
+    val localKeystoreProperties = rootProject.file("keystore.properties")
+    if (localKeystoreProperties.exists()) {
+        localKeystoreProperties.inputStream().use(::load)
+    }
+}
+
+fun localPropertyOrEnv(propertyKey: String, envKey: String): String? =
+    keystoreProperties.getProperty(propertyKey)?.takeIf { it.isNotBlank() }
+        ?: System.getenv(envKey)?.takeIf { it.isNotBlank() }
+
+val releaseStoreFile = localPropertyOrEnv("storeFile", "ANDROID_KEYSTORE_PATH")
+val releaseStorePassword = localPropertyOrEnv("storePassword", "ANDROID_KEYSTORE_PASSWORD")
+val releaseKeyAlias = localPropertyOrEnv("keyAlias", "ANDROID_KEY_ALIAS")
+val releaseKeyPassword = localPropertyOrEnv("keyPassword", "ANDROID_KEY_PASSWORD")
 val hasReleaseSigning = listOf(
     releaseStoreFile,
     releaseStorePassword,
@@ -35,7 +46,7 @@ android {
     signingConfigs {
         if (hasReleaseSigning) {
             create("release") {
-                storeFile = File(requireNotNull(releaseStoreFile))
+                storeFile = rootProject.file(requireNotNull(releaseStoreFile))
                 storePassword = requireNotNull(releaseStorePassword)
                 keyAlias = requireNotNull(releaseKeyAlias)
                 keyPassword = requireNotNull(releaseKeyPassword)
