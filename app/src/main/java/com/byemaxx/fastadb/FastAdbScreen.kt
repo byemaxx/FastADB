@@ -296,10 +296,7 @@ private fun ControlPanelCard(
                         enabled = fastbootEnabled
                     ) {
                         Text(
-                            text = "set selinux permissive",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                            text = "set selinux permissive")
                     }
                     OutlinedButton(
                         modifier = Modifier.weight(1f),
