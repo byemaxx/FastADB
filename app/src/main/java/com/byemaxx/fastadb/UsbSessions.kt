@@ -74,6 +74,8 @@ class UsbBulkTransport private constructor(
     private val outputEndpoint: UsbEndpoint
 ) : Closeable {
 
+    private val inputPacketSize = inputEndpoint.maxPacketSize.coerceAtLeast(4)
+
     fun readExactly(length: Int, timeoutMs: Int = BULK_TIMEOUT_MS): ByteArray {
         val result = ByteArray(length)
         var offset = 0
@@ -107,6 +109,8 @@ class UsbBulkTransport private constructor(
         }
         return buffer.copyOf(read)
     }
+
+    fun readPacket(timeoutMs: Int = BULK_TIMEOUT_MS): ByteArray = readChunk(inputPacketSize, timeoutMs)
 
     fun writeAll(bytes: ByteArray, timeoutMs: Int = BULK_TIMEOUT_MS) {
         var offset = 0
@@ -242,12 +246,15 @@ class FastbootDeviceSession(
         transport.writeAll(command.toByteArray(StandardCharsets.US_ASCII))
         val okayPayload = StringBuilder()
         while (true) {
-            val response = transport.readChunk(256)
+            val response = transport.readPacket()
             if (response.size < 4) {
                 throw IOException("Fastboot response packet was shorter than expected.")
             }
             val tag = response.copyOfRange(0, 4).toString(StandardCharsets.US_ASCII)
-            val body = response.copyOfRange(4, response.size).toString(StandardCharsets.UTF_8).trim()
+            val body = response
+                .copyOfRange(4, response.size)
+                .toString(StandardCharsets.UTF_8)
+                .trimEnd('\u0000', '\r', '\n', ' ', '\t')
             when (tag) {
                 "INFO", "TEXT" -> if (logInfoLines && body.isNotBlank()) {
                     logger(TerminalKind.Output, body)
