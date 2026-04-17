@@ -32,20 +32,4 @@ class QuickActionFeedbackTest {
             describeQuickActionCommand(QuickAction.FastbootContinue, DeviceMode.Fastboot)
         )
     }
-
-    @Test
-    fun describesQuickActionSuccessMessages() {
-        assertEquals(
-            "Reboot command sent. The device may disconnect and reconnect in bootloader mode.",
-            describeQuickActionSuccess(QuickAction.RebootBootloader)
-        )
-        assertEquals(
-            "The set-gpu-preemption command was accepted by the device.",
-            describeQuickActionSuccess(QuickAction.SetGpuPreemptionPermissive)
-        )
-        assertEquals(
-            "Fastboot continue command sent. The device may leave Fastboot mode.",
-            describeQuickActionSuccess(QuickAction.FastbootContinue)
-        )
-    }
 }

@@ -188,18 +188,18 @@ class FastbootDeviceSession(
             QuickAction.RebootBootloader -> executeRawCommand(
                 command = "reboot-bootloader",
                 logger = logger,
-                logCompletionMessage = false
+                logCompletionMessage = true
             )
             QuickAction.SetGpuPreemptionPermissive -> executeRawCommand(
                 command = "oem set-gpu-preemption 0 androidboot.selinux=permissive",
                 logger = logger,
-                logCompletionMessage = false
+                logCompletionMessage = true
             )
 
             QuickAction.FastbootContinue -> executeRawCommand(
                 command = "continue",
                 logger = logger,
-                logCompletionMessage = false
+                logCompletionMessage = true
             )
         }
     }
@@ -305,7 +305,7 @@ class AdbDeviceSession(
 
     override fun executeQuickAction(action: QuickAction, logger: LogSink) {
         when (action) {
-            QuickAction.RebootBootloader -> rebootBootloader(logger, verbose = false)
+            QuickAction.RebootBootloader -> rebootBootloader(logger, verbose = true)
             QuickAction.SetGpuPreemptionPermissive ->
                 throw IOException("This quick action is only available in Fastboot mode.")
 

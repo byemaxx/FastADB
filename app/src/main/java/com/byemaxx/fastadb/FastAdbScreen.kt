@@ -290,13 +290,13 @@ private fun ControlPanelCard(
                     Text("adb reboot bootloader")
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilledTonalButton(
+                    OutlinedButton(
                         modifier = Modifier.weight(1f),
                         onClick = { onQuickAction(QuickAction.SetGpuPreemptionPermissive) },
                         enabled = fastbootEnabled
                     ) {
                         Text(
-                            text = "set-gpu-preemption",
+                            text = "set selinux permissive",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
