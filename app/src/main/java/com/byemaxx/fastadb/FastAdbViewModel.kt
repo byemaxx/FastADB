@@ -94,6 +94,7 @@ class FastAdbViewModel(
     val uiState: StateFlow<FastAdbUiState> = _uiState.asStateFlow()
 
     private val sessionMutex = Mutex()
+    private val commandMutex = Mutex()
     private var currentSession: DeviceSession? = null
     private var currentDeviceId: Int? = null
     private var connectJob: Job? = null
@@ -231,69 +232,71 @@ class FastAdbViewModel(
     private fun connectToCandidate(candidate: UsbCandidate) {
         connectJob?.cancel()
         connectJob = viewModelScope.launch(Dispatchers.IO) {
-            sessionMutex.withLock {
-                currentSession?.close()
-                currentSession = null
-                currentDeviceId = null
-            }
-            _uiState.update {
-                it.copy(
-                    mode = candidate.mode,
-                    status = text(R.string.status_connecting_device, modeLabel(candidate.mode)),
-                    deviceLabel = candidate.friendlyName,
-                    deviceIdentifiers = candidate.identifiers,
-                    busy = true,
-                    permissionPending = false,
-                    info = emptyList()
-                )
-            }
-            appendLog(
-                TerminalKind.System,
-                "Opening ${modeLogLabel(candidate.mode)} channel and loading device details."
-            )
-            var session: DeviceSession? = null
-            try {
-                val connection = usbManager.openDevice(candidate.device)
-                    ?: throw IOException("Unable to open a USB connection to the device.")
-                val transport = UsbBulkTransport.open(
-                    device = candidate.device,
-                    connection = connection,
-                    usbInterface = candidate.usbInterface
-                )
-                session = when (candidate.mode) {
-                    DeviceMode.Adb -> AdbDeviceSession(transport, keyManager, strings)
-                    DeviceMode.Fastboot -> FastbootDeviceSession(transport, strings)
-                    else -> error("Unsupported mode ${candidate.mode}")
-                }
-                val snapshot = session.initialize { kind, message ->
-                    appendLog(kind, message)
-                }
+            commandMutex.withLock {
                 sessionMutex.withLock {
-                    currentSession = session
-                    currentDeviceId = candidate.device.deviceId
+                    currentSession?.close()
+                    currentSession = null
+                    currentDeviceId = null
                 }
                 _uiState.update {
                     it.copy(
                         mode = candidate.mode,
-                        status = text(R.string.status_device_synced),
-                        deviceLabel = snapshot.title,
+                        status = text(R.string.status_connecting_device, modeLabel(candidate.mode)),
+                        deviceLabel = candidate.friendlyName,
                         deviceIdentifiers = candidate.identifiers,
-                        info = snapshot.facts,
-                        busy = false,
-                        permissionPending = false
+                        busy = true,
+                        permissionPending = false,
+                        info = emptyList()
                     )
                 }
                 appendLog(
                     TerminalKind.System,
-                    "${modeLogLabel(candidate.mode)} session established. You can now use quick actions or send commands."
+                    "Opening ${modeLogLabel(candidate.mode)} channel and loading device details."
                 )
-            } catch (error: Throwable) {
-                session?.close()
-                disconnect(
-                    mode = DeviceMode.Disconnected,
-                    status = text(R.string.status_connection_failed),
-                    appendMessage = error.userFacingMessage()
-                )
+                var session: DeviceSession? = null
+                try {
+                    val connection = usbManager.openDevice(candidate.device)
+                        ?: throw IOException("Unable to open a USB connection to the device.")
+                    val transport = UsbBulkTransport.open(
+                        device = candidate.device,
+                        connection = connection,
+                        usbInterface = candidate.usbInterface
+                    )
+                    session = when (candidate.mode) {
+                        DeviceMode.Adb -> AdbDeviceSession(transport, keyManager, strings)
+                        DeviceMode.Fastboot -> FastbootDeviceSession(transport, strings)
+                        else -> error("Unsupported mode ${candidate.mode}")
+                    }
+                    val snapshot = session.initialize { kind, message ->
+                        appendLog(kind, message)
+                    }
+                    sessionMutex.withLock {
+                        currentSession = session
+                        currentDeviceId = candidate.device.deviceId
+                    }
+                    _uiState.update {
+                        it.copy(
+                            mode = candidate.mode,
+                            status = text(R.string.status_device_synced),
+                            deviceLabel = snapshot.title,
+                            deviceIdentifiers = candidate.identifiers,
+                            info = snapshot.facts,
+                            busy = false,
+                            permissionPending = false
+                        )
+                    }
+                    appendLog(
+                        TerminalKind.System,
+                        "${modeLogLabel(candidate.mode)} session established. You can now use quick actions or send commands."
+                    )
+                } catch (error: Throwable) {
+                    session?.close()
+                    disconnect(
+                        mode = DeviceMode.Disconnected,
+                        status = text(R.string.status_connection_failed),
+                        appendMessage = error.userFacingMessage()
+                    )
+                }
             }
         }
     }
@@ -301,19 +304,35 @@ class FastAdbViewModel(
     private fun runWithSession(
         block: suspend (DeviceSession) -> Unit
     ) {
+        if (!tryEnterBusyState()) {
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) {
-            val session = sessionMutex.withLock { currentSession }
-            if (session == null) {
-                appendLog(TerminalKind.Error, "No active device session. Connect an OTG device first.")
-                return@launch
-            }
-            _uiState.update { it.copy(busy = true) }
             try {
-                block(session)
+                commandMutex.withLock {
+                    val session = sessionMutex.withLock { currentSession }
+                    if (session == null) {
+                        appendLog(TerminalKind.Error, "No active device session. Connect an OTG device first.")
+                        return@withLock
+                    }
+                    block(session)
+                }
             } catch (error: Throwable) {
                 appendLog(TerminalKind.Error, error.userFacingMessage())
             } finally {
                 _uiState.update { it.copy(busy = false) }
+            }
+        }
+    }
+
+    private fun tryEnterBusyState(): Boolean {
+        while (true) {
+            val current = _uiState.value
+            if (current.busy) {
+                return false
+            }
+            if (_uiState.compareAndSet(current, current.copy(busy = true))) {
+                return true
             }
         }
     }
@@ -325,23 +344,25 @@ class FastAdbViewModel(
     ) {
         connectJob?.cancel()
         viewModelScope.launch(Dispatchers.IO) {
-            sessionMutex.withLock {
-                currentSession?.close()
-                currentSession = null
-                currentDeviceId = null
+            commandMutex.withLock {
+                sessionMutex.withLock {
+                    currentSession?.close()
+                    currentSession = null
+                    currentDeviceId = null
+                }
+                _uiState.update {
+                    it.copy(
+                        mode = mode,
+                        status = status,
+                        deviceLabel = text(R.string.label_no_device),
+                        deviceIdentifiers = text(R.string.label_supported_interfaces),
+                        info = emptyList(),
+                        busy = false,
+                        permissionPending = false
+                    )
+                }
+                appendMessage?.let { appendLog(TerminalKind.System, it) }
             }
-            _uiState.update {
-                it.copy(
-                    mode = mode,
-                    status = status,
-                    deviceLabel = text(R.string.label_no_device),
-                    deviceIdentifiers = text(R.string.label_supported_interfaces),
-                    info = emptyList(),
-                    busy = false,
-                    permissionPending = false
-                )
-            }
-            appendMessage?.let { appendLog(TerminalKind.System, it) }
         }
     }
 
