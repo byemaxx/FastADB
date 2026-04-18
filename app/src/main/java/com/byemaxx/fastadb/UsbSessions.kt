@@ -200,10 +200,11 @@ class FastbootDeviceSession(
                         logger = logger,
                         logCompletionMessage = true
                     )
-                } catch (error: Exception) {
+                } catch (error: IOException) {
                     logger(
                         TerminalKind.Error,
-                        error.message?.takeIf { it.isNotBlank() } ?: "Fastboot command failed."
+                        error.message?.takeIf { it.isNotBlank() }
+                            ?: "SELinux permissive command failed."
                     )
                     logger(
                         TerminalKind.System,
