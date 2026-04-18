@@ -369,34 +369,36 @@ private fun TerminalCard(
                     Text("Clear")
                 }
             }
-            SelectionContainer(modifier = Modifier.weight(1f)) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(Color(0xFF0A0F14))
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                    contentPadding = PaddingValues(vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    items(
-                        items = state.terminal,
-                        key = { it.id }
-                    ) { line ->
-                        val color = when (line.kind) {
-                            TerminalKind.Command -> Color(0xFFFFC857)
-                            TerminalKind.Output -> Color(0xFFE8EEF6)
-                            TerminalKind.Error -> Color(0xFFFF8A80)
-                            TerminalKind.System -> Color(0xFF6FD3C3)
+            Box(modifier = Modifier.weight(1f)) {
+                SelectionContainer {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(Color(0xFF0A0F14))
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        contentPadding = PaddingValues(vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        items(
+                            items = state.terminal,
+                            key = { it.id }
+                        ) { line ->
+                            val color = when (line.kind) {
+                                TerminalKind.Command -> Color(0xFFFFC857)
+                                TerminalKind.Output -> Color(0xFFE8EEF6)
+                                TerminalKind.Error -> Color(0xFFFF8A80)
+                                TerminalKind.System -> Color(0xFF6FD3C3)
+                            }
+                            Text(
+                                text = line.text,
+                                color = color,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontSize = 12.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
                         }
-                        Text(
-                            text = line.text,
-                            color = color,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = 12.sp,
-                            fontFamily = FontFamily.Monospace
-                        )
                     }
                 }
             }
