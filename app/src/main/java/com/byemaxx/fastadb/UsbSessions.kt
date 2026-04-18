@@ -208,7 +208,7 @@ class FastbootDeviceSession(
                     )
                     logger(
                         TerminalKind.System,
-                        "Skipped `fastboot continue` because the previous command was rejected."
+                        "Skipped 'fastboot continue' because the previous command was rejected."
                     )
                     return
                 }
