@@ -200,7 +200,7 @@ class FastbootDeviceSession(
                         logger = logger,
                         logCompletionMessage = true
                     )
-                } catch (error: Throwable) {
+                } catch (error: Exception) {
                     logger(
                         TerminalKind.Error,
                         error.message?.takeIf { it.isNotBlank() } ?: "Fastboot command failed."
