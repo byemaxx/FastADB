@@ -373,7 +373,7 @@ private fun TerminalCard(
                 LazyColumn(
                     state = listState,
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxSize()
                         .clip(RoundedCornerShape(18.dp))
                         .background(Color(0xFF0A0F14))
                         .padding(horizontal = 12.dp, vertical = 10.dp),
