@@ -458,10 +458,8 @@ internal fun describeQuickActionCommand(action: QuickAction, mode: DeviceMode): 
         else -> "reboot bootloader"
     }
 
-    QuickAction.SetGpuPreemptionPermissive ->
-        "fastboot oem set-gpu-preemption 0 androidboot.selinux=permissive"
-
-    QuickAction.FastbootContinue -> "fastboot continue"
+    QuickAction.SetSelinuxPermissiveThenContinue ->
+        "fastboot oem set-gpu-preemption 0 androidboot.selinux=permissive && fastboot continue"
 }
 
 private data class UsbCandidate(

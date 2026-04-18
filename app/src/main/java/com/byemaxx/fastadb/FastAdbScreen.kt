@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 
 @Composable
@@ -121,8 +122,8 @@ private fun FastAdbScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 HeroCard(
                     state = state,
@@ -132,8 +133,6 @@ private fun FastAdbScreen(
                 AnimatedVisibility(visible = controlsExpanded.value) {
                     ControlPanelCard(
                         state = state,
-                        onCommandChange = onCommandChange,
-                        onSendCommand = onSendCommand,
                         onQuickAction = onQuickAction
                     )
                 }
@@ -143,6 +142,8 @@ private fun FastAdbScreen(
                         .weight(1f),
                     state = state,
                     listState = terminalState,
+                    onCommandChange = onCommandChange,
+                    onSendCommand = onSendCommand,
                     onClearTerminal = onClearTerminal
                 )
             }
@@ -165,8 +166,8 @@ private fun HeroCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -251,8 +252,6 @@ private fun StatusBadge(mode: DeviceMode) {
 @Composable
 private fun ControlPanelCard(
     state: FastAdbUiState,
-    onCommandChange: (String) -> Unit,
-    onSendCommand: () -> Unit,
     onQuickAction: (QuickAction) -> Unit
 ) {
     val adbEnabled = state.mode == DeviceMode.Adb && !state.busy
@@ -267,8 +266,8 @@ private fun ControlPanelCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             if (state.info.isNotEmpty()) {
                 LazyRow(
@@ -289,59 +288,12 @@ private fun ControlPanelCard(
                 ) {
                     Text("adb reboot bootloader")
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
-                        modifier = Modifier.weight(1f),
-                        onClick = { onQuickAction(QuickAction.SetGpuPreemptionPermissive) },
-                        enabled = fastbootEnabled
-                    ) {
-                        Text(
-                            text = "set selinux permissive")
-                    }
-                    OutlinedButton(
-                        modifier = Modifier.weight(1f),
-                        onClick = { onQuickAction(QuickAction.FastbootContinue) },
-                        enabled = fastbootEnabled
-                    ) {
-                        Text("fastboot continue")
-                    }
-                }
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                OutlinedButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { onQuickAction(QuickAction.SetSelinuxPermissiveThenContinue) },
+                    enabled = fastbootEnabled
                 ) {
-                    OutlinedTextField(
-                        value = state.commandInput,
-                        onValueChange = onCommandChange,
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        shape = RoundedCornerShape(18.dp),
-                        enabled = !state.busy,
-                        placeholder = {
-                            Text(
-                                when (state.mode) {
-                                    DeviceMode.Adb -> "adb shell getprop ro.product.model"
-                                    DeviceMode.Fastboot -> "fastboot getvar product"
-                                    else -> "Connect a device first"
-                                },
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    )
-                    Button(
-                        onClick = onSendCommand,
-                        enabled = !state.busy &&
-                            state.commandInput.isNotBlank() &&
-                            state.mode != DeviceMode.Disconnected &&
-                            state.mode != DeviceMode.Unsupported &&
-                            state.mode != DeviceMode.PermissionRequired
-                    ) {
-                        Text(if (state.busy) "..." else "Send")
-                    }
+                    Text("set selinux permissive + fastboot continue")
                 }
             }
         }
@@ -380,6 +332,8 @@ private fun TerminalCard(
     modifier: Modifier,
     state: FastAdbUiState,
     listState: LazyListState,
+    onCommandChange: (String) -> Unit,
+    onSendCommand: () -> Unit,
     onClearTerminal: () -> Unit
 ) {
     Card(
@@ -390,8 +344,8 @@ private fun TerminalCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -415,34 +369,71 @@ private fun TerminalCard(
                     Text("Clear")
                 }
             }
-            SelectionContainer {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(Color(0xFF0A0F14))
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
-                    contentPadding = PaddingValues(vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    items(
-                        items = state.terminal,
-                        key = { it.id }
-                    ) { line ->
-                        val color = when (line.kind) {
-                            TerminalKind.Command -> Color(0xFFFFC857)
-                            TerminalKind.Output -> Color(0xFFE8EEF6)
-                            TerminalKind.Error -> Color(0xFFFF8A80)
-                            TerminalKind.System -> Color(0xFF6FD3C3)
+            Box(modifier = Modifier.weight(1f)) {
+                SelectionContainer {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(Color(0xFF0A0F14))
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        contentPadding = PaddingValues(vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        items(
+                            items = state.terminal,
+                            key = { it.id }
+                        ) { line ->
+                            val color = when (line.kind) {
+                                TerminalKind.Command -> Color(0xFFFFC857)
+                                TerminalKind.Output -> Color(0xFFE8EEF6)
+                                TerminalKind.Error -> Color(0xFFFF8A80)
+                                TerminalKind.System -> Color(0xFF6FD3C3)
+                            }
+                            Text(
+                                text = line.text,
+                                color = color,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontSize = 12.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
                         }
+                    }
+                }
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = state.commandInput,
+                    onValueChange = onCommandChange,
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    shape = RoundedCornerShape(18.dp),
+                    enabled = !state.busy,
+                    placeholder = {
                         Text(
-                            text = line.text,
-                            color = color,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontFamily = FontFamily.Monospace
+                            when (state.mode) {
+                                DeviceMode.Adb -> "adb shell getprop ro.product.model"
+                                DeviceMode.Fastboot -> "fastboot getvar product"
+                                else -> "Connect a device first"
+                            },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
+                )
+                Button(
+                    onClick = onSendCommand,
+                    enabled = !state.busy &&
+                        state.commandInput.isNotBlank() &&
+                        state.mode != DeviceMode.Disconnected &&
+                        state.mode != DeviceMode.Unsupported &&
+                        state.mode != DeviceMode.PermissionRequired
+                ) {
+                    Text(if (state.busy) "..." else "Send")
                 }
             }
         }
