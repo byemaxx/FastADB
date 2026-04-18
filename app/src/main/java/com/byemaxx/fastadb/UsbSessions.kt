@@ -194,11 +194,23 @@ class FastbootDeviceSession(
                 logCompletionMessage = true
             )
             QuickAction.SetSelinuxPermissiveThenContinue -> {
-                executeRawCommand(
-                    command = "oem set-gpu-preemption 0 androidboot.selinux=permissive",
-                    logger = logger,
-                    logCompletionMessage = true
-                )
+                try {
+                    executeRawCommand(
+                        command = "oem set-gpu-preemption 0 androidboot.selinux=permissive",
+                        logger = logger,
+                        logCompletionMessage = true
+                    )
+                } catch (error: Throwable) {
+                    logger(
+                        TerminalKind.Error,
+                        error.message?.takeIf { it.isNotBlank() } ?: "Fastboot command failed."
+                    )
+                    logger(
+                        TerminalKind.System,
+                        "Skipped `fastboot continue` because the previous command was rejected."
+                    )
+                    return
+                }
                 executeRawCommand(
                     command = "continue",
                     logger = logger,
