@@ -24,12 +24,8 @@ class QuickActionFeedbackTest {
     @Test
     fun describesFastbootQuickActions() {
         assertEquals(
-            "fastboot oem set-gpu-preemption 0 androidboot.selinux=permissive",
-            describeQuickActionCommand(QuickAction.SetGpuPreemptionPermissive, DeviceMode.Fastboot)
-        )
-        assertEquals(
-            "fastboot continue",
-            describeQuickActionCommand(QuickAction.FastbootContinue, DeviceMode.Fastboot)
+            "fastboot oem set-gpu-preemption 0 androidboot.selinux=permissive && fastboot continue",
+            describeQuickActionCommand(QuickAction.SetSelinuxPermissiveThenContinue, DeviceMode.Fastboot)
         )
     }
 }

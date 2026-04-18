@@ -46,8 +46,7 @@ private const val ADB_AUTH_RSAPUBLICKEY = 3
 
 enum class QuickAction {
     RebootBootloader,
-    SetGpuPreemptionPermissive,
-    FastbootContinue
+    SetSelinuxPermissiveThenContinue
 }
 
 data class DeviceSnapshot(
@@ -194,17 +193,18 @@ class FastbootDeviceSession(
                 logger = logger,
                 logCompletionMessage = true
             )
-            QuickAction.SetGpuPreemptionPermissive -> executeRawCommand(
-                command = "oem set-gpu-preemption 0 androidboot.selinux=permissive",
-                logger = logger,
-                logCompletionMessage = true
-            )
-
-            QuickAction.FastbootContinue -> executeRawCommand(
-                command = "continue",
-                logger = logger,
-                logCompletionMessage = true
-            )
+            QuickAction.SetSelinuxPermissiveThenContinue -> {
+                executeRawCommand(
+                    command = "oem set-gpu-preemption 0 androidboot.selinux=permissive",
+                    logger = logger,
+                    logCompletionMessage = true
+                )
+                executeRawCommand(
+                    command = "continue",
+                    logger = logger,
+                    logCompletionMessage = true
+                )
+            }
         }
     }
 
@@ -313,11 +313,8 @@ class AdbDeviceSession(
     override fun executeQuickAction(action: QuickAction, logger: LogSink) {
         when (action) {
             QuickAction.RebootBootloader -> rebootBootloader(logger, verbose = true)
-            QuickAction.SetGpuPreemptionPermissive ->
+            QuickAction.SetSelinuxPermissiveThenContinue ->
                 throw IOException("This quick action is only available in Fastboot mode.")
-
-            QuickAction.FastbootContinue ->
-                throw IOException("`fastboot continue` is only available in Fastboot mode.")
         }
     }
 
