@@ -194,13 +194,11 @@ class FastbootDeviceSession(
                 logCompletionMessage = true
             )
             QuickAction.SetSelinuxPermissiveThenContinue -> {
-                runCatching {
-                    executeRawCommand(
-                        command = "oem set-gpu-preemption 0 androidboot.selinux=permissive",
-                        logger = logger,
-                        logCompletionMessage = true
-                    )
-                }.getOrElse { throw it }
+                executeRawCommand(
+                    command = "oem set-gpu-preemption 0 androidboot.selinux=permissive",
+                    logger = logger,
+                    logCompletionMessage = true
+                )
                 executeRawCommand(
                     command = "continue",
                     logger = logger,
