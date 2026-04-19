@@ -31,6 +31,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -50,6 +51,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
+
+private val TerminalInputTextColor = Color(0xFFE8EEF6)
+private val TerminalInputDisabledTextColor = Color(0xFF9DA8B7)
+private val TerminalInputCursorColor = Color(0xFFFFC857)
+private val TerminalInputContainerColor = Color(0xFF0A0F14)
+private val TerminalInputPlaceholderColor = Color(0xFF8E9AA9)
+private val TerminalInputDisabledPlaceholderColor = Color(0xFF6D7785)
+private val TerminalInputFocusedBorderColor = Color(0xFF6FD3C3)
+private val TerminalInputUnfocusedBorderColor = Color(0xFF3A4656)
+private val TerminalInputDisabledBorderColor = Color(0xFF2A3442)
 
 @Composable
 fun FastAdbRoute(viewModel: FastAdbViewModel) {
@@ -413,6 +424,21 @@ private fun TerminalCard(
                     singleLine = true,
                     shape = RoundedCornerShape(18.dp),
                     enabled = !state.busy,
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = TerminalInputTextColor,
+                        unfocusedTextColor = TerminalInputTextColor,
+                        disabledTextColor = TerminalInputDisabledTextColor,
+                        cursorColor = TerminalInputCursorColor,
+                        focusedContainerColor = TerminalInputContainerColor,
+                        unfocusedContainerColor = TerminalInputContainerColor,
+                        disabledContainerColor = TerminalInputContainerColor,
+                        focusedPlaceholderColor = TerminalInputPlaceholderColor,
+                        unfocusedPlaceholderColor = TerminalInputPlaceholderColor,
+                        disabledPlaceholderColor = TerminalInputDisabledPlaceholderColor,
+                        focusedBorderColor = TerminalInputFocusedBorderColor,
+                        unfocusedBorderColor = TerminalInputUnfocusedBorderColor,
+                        disabledBorderColor = TerminalInputDisabledBorderColor
+                    ),
                     placeholder = {
                         Text(
                             when (state.mode) {
