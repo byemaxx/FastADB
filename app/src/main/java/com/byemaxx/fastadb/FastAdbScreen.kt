@@ -31,6 +31,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -413,6 +414,21 @@ private fun TerminalCard(
                     singleLine = true,
                     shape = RoundedCornerShape(18.dp),
                     enabled = !state.busy,
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = Color(0xFFE8EEF6),
+                        unfocusedTextColor = Color(0xFFE8EEF6),
+                        disabledTextColor = Color(0xFF9DA8B7),
+                        cursorColor = Color(0xFFFFC857),
+                        focusedContainerColor = Color(0xFF0A0F14),
+                        unfocusedContainerColor = Color(0xFF0A0F14),
+                        disabledContainerColor = Color(0xFF0A0F14),
+                        focusedPlaceholderColor = Color(0xFF8E9AA9),
+                        unfocusedPlaceholderColor = Color(0xFF8E9AA9),
+                        disabledPlaceholderColor = Color(0xFF6D7785),
+                        focusedBorderColor = Color(0xFF6FD3C3),
+                        unfocusedBorderColor = Color(0xFF3A4656),
+                        disabledBorderColor = Color(0xFF2A3442)
+                    ),
                     placeholder = {
                         Text(
                             when (state.mode) {
