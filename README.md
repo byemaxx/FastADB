@@ -75,81 +75,6 @@ Fastboot commands are normalized before execution:
 - `fastboot getvar <name>` is converted to `getvar:<name>`.
 - Other non-empty Fastboot input is sent as a raw Fastboot command body.
 
-## Current limitations
-
-- Only one connected USB device is handled at a time.
-- Fastboot DATA-phase commands are not supported yet, so flashing, booting images, sideloading, and similar operations are not implemented.
-- ADB support is focused on shell, reboot, and raw service commands. It does not currently implement file transfer, port forwarding, install, logcat streaming, or full desktop-ADB parity.
-- Device compatibility depends on the target device exposing standard ADB or Fastboot USB interfaces.
-
-## Build from source
-
-Clone the repository and build with Gradle:
-
-```bash
-git clone https://github.com/byemaxx/FASTADB.git
-cd FASTADB
-./gradlew assembleDebug
-```
-
-The debug APK will be generated under:
-
-```text
-app/build/outputs/apk/debug/
-```
-
-## Release signing
-
-Release builds can be signed either through a local `keystore.properties` file or through environment variables.
-
-### Local signing configuration
-
-Create a `keystore.properties` file in the project root:
-
-```properties
-storeFile=/path/to/release.keystore
-storePassword=your_store_password
-keyAlias=your_key_alias
-keyPassword=your_key_password
-```
-
-Then build the release APK:
-
-```bash
-./gradlew assembleRelease
-```
-
-### Environment variables
-
-Alternatively, provide the following environment variables:
-
-```bash
-ANDROID_KEYSTORE_PATH=/path/to/release.keystore
-ANDROID_KEYSTORE_PASSWORD=your_store_password
-ANDROID_KEY_ALIAS=your_key_alias
-ANDROID_KEY_PASSWORD=your_key_password
-```
-
-## GitHub Actions release workflow
-
-The repository includes a manual GitHub Actions workflow for building and publishing a signed release APK. The workflow expects these repository secrets:
-
-- `ANDROID_KEYSTORE_BASE64`
-- `ANDROID_KEYSTORE_PASSWORD`
-- `ANDROID_KEY_ALIAS`
-- `ANDROID_KEY_PASSWORD`
-
-The workflow builds `assembleRelease`, uploads the signed APK as a workflow artifact, and attaches it to the selected GitHub Release tag.
-
-## Project structure
-
-```text
-app/src/main/java/com/byemaxx/fastadb/
-├── MainActivity.kt          # App entry point and USB intent handling
-├── FastAdbScreen.kt         # Jetpack Compose UI
-├── FastAdbViewModel.kt      # Device detection, state management, and command dispatch
-└── UsbSessions.kt           # USB transport, ADB session, Fastboot session, and command parsing
-```
 
 ## Security notes
 
@@ -157,6 +82,3 @@ ADB and Fastboot commands can reboot, modify, or otherwise affect the target dev
 
 FASTADB generates its own ADB RSA key pair and stores it through Android Keystore. If the target device no longer trusts the host, revoke USB debugging authorizations on the target device and authorize the app again.
 
-## License
-
-No license file is currently included in this repository.
